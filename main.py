@@ -26,17 +26,16 @@ def generate_ai_text(prompt):
 
 
 def long_tweet_about_subject(what):
-    tweets = generate_ai_text(f"write in a Spanish a series of twits {what}, separate each twit with '*'")
+    tweets = generate_ai_text(f"write in Spanish a thread of tweets {what}, separate each tweet with '*'")
 
     for tweet in tweets.split("*"):
         if len(tweet) <= 2:
             continue
         api.update_status(tweet.strip())
-        sleep(30)
 
 
 def short_tweet_about_subject(what):
-    tweet = generate_ai_text(f"write in a Spanish a twit {what}")
+    tweet = generate_ai_text(f"write in Spanish a tweet {what}")
     api.update_status(tweet.strip())
 
 
@@ -47,12 +46,22 @@ def get_location_woeid(loc):
     return closest_loc[0]["woeid"]
 
 
-trends = api.get_place_trends(get_location_woeid("Argentina"))
+while True:
+    print("1. Tweet about a subject")
+    print("2. Tweet based on trends in location")
+    print("3. Exit")
+    choice = input("Enter your choice: ")
 
-
-twitted_trends_count = 0
-for trend in trends[0]['trends']:
-    short_tweet_about_subject("explaining {}, using hashtags".format(trend['name']))
-    twitted_trends_count += 1
-    if twitted_trends_count > 5:
+    if choice == "1":
+        subject = input("Enter the subject: ")
+        long_tweet_about_subject(subject)
+    elif choice == "2":
+        location = input("Enter the location: ")
+        woeid = get_location_woeid(location)
+        trends = api.trends_place(woeid)[0]["trends"]
+        for trend in trends[:5]:
+            short_tweet_about_subject(trend["name"])
+    elif choice == "3":
         break
+    else:
+        print("Invalid choice")
